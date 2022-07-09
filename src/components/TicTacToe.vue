@@ -18,7 +18,9 @@ export default defineComponent({
             winner: 0,
             gameTable: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
             movesCount: 0,
-            size: 3
+            size: 10,
+            firstPlayerWinnerCounter: 0,
+            secondPlayerWinnerCounter: 0
         };
     },
     computed: {
@@ -78,9 +80,11 @@ export default defineComponent({
                     if (this.checkWinner(rowNum + Border, colNum + Border)) {
                         if (this.isX) {
                             this.winner = 1;
+                            this.firstPlayerWinnerCounter++;
                         }
                         else {
                             this.winner = 2;
+                            this.secondPlayerWinnerCounter++;
                         }
                     }
                     else if (this.movesCount == Math.pow(this.size, 2)) { // Tie condition
@@ -89,6 +93,18 @@ export default defineComponent({
                     this.isX = !this.isX;
                 }
             })
+        },
+        forfeitGame() {
+            if (this.isX) {
+                this.secondPlayerWinnerCounter++;
+            }
+            else {
+                this.firstPlayerWinnerCounter++;
+            }
+            this.restartGame();
+        },
+        resetScore() {
+            this.firstPlayerWinnerCounter = this.secondPlayerWinnerCounter = 0;
         },
         drawLine(xBegin: number, yBegin: number, xEnd: number, yEnd: number) {
             cx.beginPath();
@@ -146,7 +162,7 @@ export default defineComponent({
             let isWinner = false;
             const winnerCandidate = this.gameTable[arrayRowNum][arrayColNum];
 
-            for (let i = -4; i <= 0; i++) { // left horizontal check
+            for (let i = -4; i <= 0; i++) { // left diagonal check
                 if (
                     this.gameTable[arrayRowNum + i][arrayColNum + i] == winnerCandidate &&
                     this.gameTable[arrayRowNum + i + 1][arrayColNum + i + 1] == winnerCandidate &&
@@ -163,6 +179,57 @@ export default defineComponent({
                 }
             }
 
+            for (let i = -4; i <= 0; i++) { // right diagonal check
+                if (
+                    this.gameTable[arrayRowNum + i][arrayColNum - i] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 1][arrayColNum - i - 1] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 2][arrayColNum - i - 2] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 3][arrayColNum - i - 3] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 4][arrayColNum - i - 4] == winnerCandidate
+                ) {
+                    this.drawLine2(arrayRowNum + i, arrayColNum - i);
+                    this.drawLine2(arrayRowNum + i + 1, arrayColNum - i - 1);
+                    this.drawLine2(arrayRowNum + i + 2, arrayColNum - i - 2);
+                    this.drawLine2(arrayRowNum + i + 3, arrayColNum - i - 3);
+                    this.drawLine2(arrayRowNum + i + 4, arrayColNum - i - 4);
+                    isWinner = true;
+                }
+            }
+
+            for (let i = -4; i <= 0; i++) { // gorizontal check
+                if (
+                    this.gameTable[arrayRowNum][arrayColNum + i] == winnerCandidate &&
+                    this.gameTable[arrayRowNum][arrayColNum + i + 1] == winnerCandidate &&
+                    this.gameTable[arrayRowNum][arrayColNum + i + 2] == winnerCandidate &&
+                    this.gameTable[arrayRowNum][arrayColNum + i + 3] == winnerCandidate &&
+                    this.gameTable[arrayRowNum][arrayColNum + i + 4] == winnerCandidate
+                ) {
+                    this.drawLine3(arrayRowNum, arrayColNum + i);
+                    this.drawLine3(arrayRowNum, arrayColNum + i + 1);
+                    this.drawLine3(arrayRowNum, arrayColNum + i + 2);
+                    this.drawLine3(arrayRowNum, arrayColNum + i + 3);
+                    this.drawLine3(arrayRowNum, arrayColNum + i + 4);
+                    isWinner = true;
+                }
+            }
+
+            for (let i = -4; i <= 0; i++) { // vertical check
+                if (
+                    this.gameTable[arrayRowNum + i][arrayColNum] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 1][arrayColNum] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 2][arrayColNum] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 3][arrayColNum] == winnerCandidate &&
+                    this.gameTable[arrayRowNum + i + 4][arrayColNum] == winnerCandidate
+                ) {
+                    this.drawLine4(arrayRowNum + i, arrayColNum);
+                    this.drawLine4(arrayRowNum + i + 1, arrayColNum);
+                    this.drawLine4(arrayRowNum + i + 2, arrayColNum);
+                    this.drawLine4(arrayRowNum + i + 3, arrayColNum);
+                    this.drawLine4(arrayRowNum + i + 4, arrayColNum);
+                    isWinner = true;
+                }
+            }
+
             return isWinner;
         }
     },
@@ -174,7 +241,6 @@ export default defineComponent({
             this.size = this.mainStore.size;
             this.restartGame();
             console.log(this.size);
-
         })
     }
 });
@@ -182,8 +248,11 @@ export default defineComponent({
 
 <template>
     <div class="wrapper">
-        <canvas width="150" height="150"></canvas>
-        <div class = "infoWrapper">
+        <div class="scoreWrapper">
+            <button class="gameButton" @click="resetScore">Reset</button>
+            <h1 class="score"> {{ firstPlayerWinnerCounter }}:{{ secondPlayerWinnerCounter }}</h1>
+        </div>
+        <div class="infoWrapper">
             <div v-if="winner == 0 && isX">
                 <h1 class="info">Player 1 move</h1>
             </div>
@@ -199,10 +268,14 @@ export default defineComponent({
             <div v-if="winner == 3">
                 <h1 class="info">Tie!</h1>
             </div>
-            <div v-if="winner">
-                <button class="restartGameButton" @click="restartGame">Restart</button>
-            </div>
         </div>
+        <div v-if="winner" class="gameButtonWrapper">
+            <button class="gameButton" @click="restartGame">Restart</button>
+        </div>
+        <div v-else class="gameButtonWrapper">
+            <button class="gameButton" @click="forfeitGame">Forfeit</button>
+        </div>
+        <canvas width="150" height="150"></canvas>
     </div>
 </template>
 
@@ -224,7 +297,7 @@ export default defineComponent({
     text-align: center;
 }
 
-.restartGameButton {
+.gameButton {
     color: #111;
     font-family: 'Open Sans', sans-serif;
     font-size: 30px;
@@ -232,7 +305,26 @@ export default defineComponent({
     line-height: 48px;
     margin: 0;
 }
+
+.gameButtonWrapper {
+    margin-bottom: 20px;
+    height: 50px;
+    justify-items: center;
+}
+
 .infoWrapper {
-    margin-top: 20px;
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.score {
+    font-weight: 500;
+    font-size: 5rem;
+    top:-5px;
+}
+
+.scoreWrapper {
+    display: flex;
+    flex-direction: column;
 }
 </style>

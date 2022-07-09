@@ -8,7 +8,7 @@ import {debounce} from "lodash";
 export default defineComponent({
   data() {
     return {
-      size: 5,
+      size: 10,
     };
   },
   computed: {
@@ -19,11 +19,11 @@ export default defineComponent({
   },
   methods: {
     sizeValidation() {
-      if (this.size as any == '' || this.size < 3) {
-        this.size = 3;
+      if (this.size as any == '' || this.size < 10) {
+        this.size = 10;
       }
-      if (this.size > 100) {
-        this.size = 100;
+      if (this.size > 300) {
+        this.size = 300;
       }
       this.mainStore.$patch({
         size: this.size
