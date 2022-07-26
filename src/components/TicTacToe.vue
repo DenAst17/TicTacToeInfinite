@@ -1,14 +1,14 @@
 <script lang="ts">
-const X_SIZE = 20, O_SIZE = 20;
+let X_SIZE = 20, O_SIZE = 20;
 const Border = 4;
-const CELL_SIZE = 50;
+let CELL_SIZE = 50;
 let board_size = 150;
 
 var canvas: HTMLCanvasElement;
 var cx: CanvasRenderingContext2D;
 
 import { defineComponent } from 'vue'
-import { mainStore } from '@/stores/store'
+import { mainStore } from '../stores/store';
 import { mapStores } from 'pinia';
 
 export default defineComponent({
@@ -20,7 +20,8 @@ export default defineComponent({
             movesCount: 0,
             size: 10,
             firstPlayerWinnerCounter: 0,
-            secondPlayerWinnerCounter: 0
+            secondPlayerWinnerCounter: 0,
+            isMobileDevice: false
         };
     },
     computed: {
@@ -28,10 +29,24 @@ export default defineComponent({
     },
     methods: {
         restartGame() {
+            let details = navigator.userAgent;
+
+            let regexp = /android|iphone|kindle|ipad/i;
+
+            this.isMobileDevice = regexp.test(details);
+
+            if (this.isMobileDevice) {
+                let windowWidth = window.innerWidth;
+                CELL_SIZE = windowWidth / this.size - 0.5;
+                console.log(CELL_SIZE);
+                X_SIZE = O_SIZE = CELL_SIZE / 2.5;
+            }
+            
             this.isX = true;
             this.winner = 0;
             this.gameTable = [];
             this.movesCount = 0;
+
             board_size = this.size * CELL_SIZE;
 
             canvas.width = canvas.height = board_size;
@@ -62,9 +77,7 @@ export default defineComponent({
                 const cursorPos = getCursorPosition(canvas, e);
                 const rowNum = Math.floor(cursorPos.y / CELL_SIZE);
                 const colNum = Math.floor(cursorPos.x / CELL_SIZE);
-                console.log(rowNum);
-                console.log(colNum);
-                console.log(cursorPos);
+                //console.log(cursorPos);
                 if (this.gameTable[rowNum + Border][colNum + Border] == 0 && !this.winner) { // check if the cell is not marked in this game
                     if (this.isX) {
                         this.drawX(colNum * CELL_SIZE + CELL_SIZE / 2, rowNum * CELL_SIZE + CELL_SIZE / 2);
@@ -248,8 +261,9 @@ export default defineComponent({
 
 <template>
     <div class="wrapper">
+        <aside class = "info" v-if="isMobileDevice">We don't recommend playing on field more than 20x20 on mobile device</aside>
         <div class="scoreWrapper">
-            <button class="gameButton" @click="resetScore">Reset</button>
+            <button class="gameButton" @click="resetScore">Reset scores</button>
             <h1 class="score"> {{ firstPlayerWinnerCounter }}:{{ secondPlayerWinnerCounter }}</h1>
         </div>
         <div class="infoWrapper">
@@ -276,6 +290,7 @@ export default defineComponent({
             <button class="gameButton" @click="forfeitGame">Forfeit</button>
         </div>
         <canvas width="150" height="150"></canvas>
+        <article class = "info researchInfo">Due to math researches, 15x15 field and more is a win for 1st player, but can you make this up?</article>
     </div>
 </template>
 
@@ -320,11 +335,17 @@ export default defineComponent({
 .score {
     font-weight: 500;
     font-size: 5rem;
-    top:-5px;
+    top: -5px;
+    display: flex;
+    justify-content: center;
 }
 
 .scoreWrapper {
     display: flex;
     flex-direction: column;
+}
+
+.researchInfo {
+    top: 10px;
 }
 </style>

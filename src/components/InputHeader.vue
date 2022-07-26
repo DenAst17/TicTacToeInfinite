@@ -1,7 +1,7 @@
 <script lang="ts">
 
 import { defineComponent } from 'vue'
-import { mainStore } from '@/stores/store'
+import { mainStore } from "../stores/store"
 import { mapStores } from 'pinia';
 import {debounce} from "lodash";
 
@@ -61,5 +61,8 @@ h1 {
 .sizeChange {
   font-size: 30px;
   width: 100px;
+  height: 50px;
+  align-self: end;
+  top:-11px;
 }
 </style>
