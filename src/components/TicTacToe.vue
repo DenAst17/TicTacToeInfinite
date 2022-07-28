@@ -18,7 +18,7 @@ export default defineComponent({
             winner: 0,
             gameTable: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
             movesCount: 0,
-            size: 10,
+            size: 5,
             firstPlayerWinnerCounter: 0,
             secondPlayerWinnerCounter: 0,
             isMobileDevice: false

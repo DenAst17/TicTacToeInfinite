@@ -4,11 +4,14 @@ import { defineComponent } from 'vue'
 import { mainStore } from "../stores/store"
 import { mapStores } from 'pinia';
 import {debounce} from "lodash";
+import {helloMixin} from "../mixins/helloMixin"
+
+const MIN_SIZE = 5, MAX_SIZE = 300;
 
 export default defineComponent({
   data() {
     return {
-      size: 10,
+      size: MIN_SIZE,
     };
   },
   computed: {
@@ -19,21 +22,22 @@ export default defineComponent({
   },
   methods: {
     sizeValidation() {
-      if (this.size as any == '' || this.size < 10) {
-        this.size = 10;
+      if (this.size as any == '' || this.size < MIN_SIZE) {
+        this.size = MIN_SIZE;
       }
-      if (this.size > 300) {
-        this.size = 300;
+      if (this.size > MAX_SIZE) {
+        this.size = MAX_SIZE;
       }
       this.mainStore.$patch({
         size: this.size
       })
     },
     sizeChange() {
-      const debouncedSizeValidation = debounce(this.sizeValidation, 500);
+      const debouncedSizeValidation = debounce(this.sizeValidation, 1000);
       debouncedSizeValidation();
     }
-  }
+  },
+  mixins: [helloMixin]
 })
 </script>
 
