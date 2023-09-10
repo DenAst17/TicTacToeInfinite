@@ -29,42 +29,54 @@ export default defineComponent({
     },
     methods: {
         makeRandomMove() {
-            const freeCells = [];
-            for (let i = 0; i < this.size; i++) {
-                for (let j = 0; j < this.size; j++) {
-                    if (this.gameTable[i + Border][j + Border] == 0 && !this.winner) {
-                        freeCells.push({ i, j });
+            try {
+                const freeCells = [];
+                for (let i = 0; i < this.size; i++) {
+                    for (let j = 0; j < this.size; j++) {
+                        if (this.gameTable[i + Border][j + Border] == 0 && !this.winner) {
+                            freeCells.push({ i, j });
+                        }
+                    }
+                }
+                var randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
+                let i = randomCell.i;
+                let j = randomCell.j;
+                console.log(i, j);
+                if (this.isX) {
+                    this.drawX(j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2);
+                    this.gameTable[i + Border][j + Border] = 1;
+                }
+                else {
+                    this.drawO(j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2);
+                    this.gameTable[i + Border][j + Border] = 2;
+                }
+
+                this.movesCount++; // + 1 move done
+
+                if (this.checkWinner(i + Border, j + Border)) {
+                    if (this.isX) {
+                        this.winner = 1;
+                        this.firstPlayerWinnerCounter++;
+                    }
+                    else {
+                        this.winner = 2;
+                        this.secondPlayerWinnerCounter++;
                     }
                 }
             }
-            var randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
-            let i = randomCell.i;
-            let j = randomCell.j;
-            if (this.isX) {
-                this.drawX(j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2);
-                this.gameTable[i + Border][j + Border] = 1;
-            }
-            else {
-                this.drawO(j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2);
-                this.gameTable[i + Border][j + Border] = 2;
-            }
-
-            this.movesCount++; // + 1 move done
-
-            if (this.checkWinner(i + Border, j + Border)) {
-                if (this.isX) {
-                    this.winner = 1;
-                    this.firstPlayerWinnerCounter++;
-                }
-                else {
-                    this.winner = 2;
-                    this.secondPlayerWinnerCounter++;
-                }
+            catch {
+                
             }
         },
         swapTeam() {
             this.makeRandomMove();
             this.isX = !this.isX;
+        },
+        getCursorPosition(canvas: { getBoundingClientRect: () => any; }, event: { clientX: number; clientY: number; }) {
+            const rect = canvas.getBoundingClientRect()
+            const x = event.clientX - rect.left
+            const y = event.clientY - rect.top
+            return { x, y };
         },
         restartGame() {
             let details = navigator.userAgent;
@@ -102,50 +114,6 @@ export default defineComponent({
                     this.gameTable[i][j] = 0;
                 }
             }
-
-            const getCursorPosition = (canvas: { getBoundingClientRect: () => any; }, event: { clientX: number; clientY: number; }) => {
-                const rect = canvas.getBoundingClientRect()
-                const x = event.clientX - rect.left
-                const y = event.clientY - rect.top
-                return { x, y };
-            }
-
-            canvas.addEventListener('mousedown', (e: any) => {
-
-                const cursorPos = getCursorPosition(canvas, e);
-                const rowNum = Math.floor(cursorPos.y / CELL_SIZE);
-                const colNum = Math.floor(cursorPos.x / CELL_SIZE);
-                //console.log(cursorPos);
-                if (this.gameTable[rowNum + Border][colNum + Border] == 0 && !this.winner) { // check if the cell is not marked in this game
-                    if (this.isX) {
-                        this.drawX(colNum * CELL_SIZE + CELL_SIZE / 2, rowNum * CELL_SIZE + CELL_SIZE / 2);
-                        this.gameTable[rowNum + Border][colNum + Border] = 1;
-                    }
-                    else {
-                        this.drawO(colNum * CELL_SIZE + CELL_SIZE / 2, rowNum * CELL_SIZE + CELL_SIZE / 2);
-                        this.gameTable[rowNum + Border][colNum + Border] = 2;
-                    }
-
-                    this.movesCount++; // + 1 move done
-
-                    if (this.checkWinner(rowNum + Border, colNum + Border)) {
-                        if (this.isX) {
-                            this.winner = 1;
-                            this.firstPlayerWinnerCounter++;
-                        }
-                        else {
-                            this.winner = 2;
-                            this.secondPlayerWinnerCounter++;
-                        }
-                    }
-                    else if (this.movesCount == Math.pow(this.size, 2)) { // Tie condition
-                        this.winner = 3;
-                    }
-                    this.isX = !this.isX;
-                }
-                this.makeRandomMove();
-                this.isX = !this.isX;
-            })
         },
         forfeitGame() {
             if (this.isX) {
@@ -294,6 +262,42 @@ export default defineComponent({
             this.size = this.mainStore.size;
             this.restartGame();
             console.log(this.size);
+        })
+        canvas.addEventListener('mousedown', (e: any) => {
+            const cursorPos = this.getCursorPosition(canvas, e);
+            console.log(cursorPos);
+            const rowNum = Math.floor(cursorPos.y / CELL_SIZE);
+            const colNum = Math.floor(cursorPos.x / CELL_SIZE);
+            //console.log(cursorPos);
+            if (this.gameTable[rowNum + Border][colNum + Border] == 0 && !this.winner) { // check if the cell is not marked in this game
+                if (this.isX) {
+                    this.drawX(colNum * CELL_SIZE + CELL_SIZE / 2, rowNum * CELL_SIZE + CELL_SIZE / 2);
+                    this.gameTable[rowNum + Border][colNum + Border] = 1;
+                }
+                else {
+                    this.drawO(colNum * CELL_SIZE + CELL_SIZE / 2, rowNum * CELL_SIZE + CELL_SIZE / 2);
+                    this.gameTable[rowNum + Border][colNum + Border] = 2;
+                }
+
+                this.movesCount++; // + 1 move done
+
+                if (this.checkWinner(rowNum + Border, colNum + Border)) {
+                    if (this.isX) {
+                        this.winner = 1;
+                        this.firstPlayerWinnerCounter++;
+                    }
+                    else {
+                        this.winner = 2;
+                        this.secondPlayerWinnerCounter++;
+                    }
+                }
+                else if (this.movesCount == Math.pow(this.size, 2)) { // Tie condition
+                    this.winner = 3;
+                }
+                this.isX = !this.isX;
+                this.makeRandomMove();
+                this.isX = !this.isX;
+            }
         })
     }
 });
