@@ -28,6 +28,44 @@ export default defineComponent({
         ...mapStores(mainStore)
     },
     methods: {
+        makeRandomMove() {
+            const freeCells = [];
+            for (let i = 0; i < this.size; i++) {
+                for (let j = 0; j < this.size; j++) {
+                    if (this.gameTable[i + Border][j + Border] == 0 && !this.winner) {
+                        freeCells.push({ i, j });
+                    }
+                }
+            }
+            var randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
+            let i = randomCell.i;
+            let j = randomCell.j;
+            if (this.isX) {
+                this.drawX(j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2);
+                this.gameTable[i + Border][j + Border] = 1;
+            }
+            else {
+                this.drawO(j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2);
+                this.gameTable[i + Border][j + Border] = 2;
+            }
+
+            this.movesCount++; // + 1 move done
+
+            if (this.checkWinner(i + Border, j + Border)) {
+                if (this.isX) {
+                    this.winner = 1;
+                    this.firstPlayerWinnerCounter++;
+                }
+                else {
+                    this.winner = 2;
+                    this.secondPlayerWinnerCounter++;
+                }
+            }
+        },
+        swapTeam() {
+            this.makeRandomMove();
+            this.isX = !this.isX;
+        },
         restartGame() {
             let details = navigator.userAgent;
 
@@ -41,7 +79,7 @@ export default defineComponent({
                 console.log(CELL_SIZE);
                 X_SIZE = O_SIZE = CELL_SIZE / 2.5;
             }
-            
+
             this.isX = true;
             this.winner = 0;
             this.gameTable = [];
@@ -105,6 +143,8 @@ export default defineComponent({
                     }
                     this.isX = !this.isX;
                 }
+                this.makeRandomMove();
+                this.isX = !this.isX;
             })
         },
         forfeitGame() {
@@ -261,9 +301,13 @@ export default defineComponent({
 
 <template>
     <div class="wrapper">
-        <aside class = "info" v-if="isMobileDevice">We don't recommend playing on field more than 20x20 on mobile device</aside>
+        <aside class="info" v-if="isMobileDevice">We don't recommend playing on field more than 20x20 on mobile device
+        </aside>
         <div class="scoreWrapper">
-            <button class="gameButton" @click="resetScore">Reset scores</button>
+            <div class="buttonsWrapper">
+                <button class="gameButton" @click="resetScore">Reset scores</button>
+                <button class="gameButton swapButton" @click="swapTeam">Swap team</button>
+            </div>
             <h1 class="score"> {{ firstPlayerWinnerCounter }}:{{ secondPlayerWinnerCounter }}</h1>
         </div>
         <div class="infoWrapper">
@@ -290,7 +334,8 @@ export default defineComponent({
             <button class="gameButton" @click="forfeitGame">Forfeit</button>
         </div>
         <canvas width="150" height="150"></canvas>
-        <article class = "info researchInfo">Due to math researches, 15x15 field and more is a win for 1st player, but can you make this up?</article>
+        <article class="info researchInfo">Due to math researches, 15x15 field and more is a win for 1st player, but can you
+            make this up?</article>
     </div>
 </template>
 
@@ -347,5 +392,9 @@ export default defineComponent({
 
 .researchInfo {
     top: 10px;
+}
+
+.swapButton {
+    margin: 0px 0px 0px 20px;
 }
 </style>
